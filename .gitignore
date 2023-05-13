@@ -1,0 +1,4 @@
+/cmake-build-debug/
+.DS_Store
+.idea/
+include/eigen-3.4.0
