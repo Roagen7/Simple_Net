@@ -14,9 +14,9 @@
 
 using activation_fun_t = double (*)(double x);
 
-using x_train_t = std::vector<Eigen::VectorXd>;
-using y_train_t = std::vector<Eigen::VectorXd>;
-using train_set_t = std::pair<x_train_t , y_train_t>;
+using dataset_x_t = std::vector<Eigen::VectorXd>;
+using dataset_desired_t = std::vector<Eigen::VectorXd>;
+using dataset_t = std::pair<dataset_x_t , dataset_desired_t>;
 
 class Simple_NN_Builder;
 
@@ -34,12 +34,17 @@ public:
 
     static Simple_NN_Builder configure();
 
-    void fit(const train_set_t&, const uint32_t& epochs = 100);
+    void fit(const dataset_t&, const uint32_t& epochs = 100);
     Eigen::VectorXd predict(const Eigen::VectorXd& x);
     std::vector<Eigen::VectorXd> predict(const std::vector<Eigen::VectorXd>& x);
 
 private:
     friend class Simple_NN_Builder;
+
+    enum Net_Type {
+        CLASSIFICATION,
+        REGRESSION
+    } net_type{};
 
     bool is_verbose{};
     bool binary_output{};
@@ -76,7 +81,8 @@ public:
     Simple_NN_Builder& hidden_layer_sizes(const std::vector<uint32_t>&);
     Simple_NN_Builder& verbose();
     Simple_NN_Builder& activation_fun(Simple_NN::Activation);
-    Simple_NN_Builder& optimizer_fun(Simple_NN::Optimizer);
+    Simple_NN_Builder& classification();
+    Simple_NN_Builder& regression();
 
 private:
     friend class Simple_NN;

@@ -40,11 +40,15 @@ Simple_NN_Builder &Simple_NN_Builder::activation_fun(Simple_NN::Activation f) {
     return *this;
 }
 
-Simple_NN_Builder &Simple_NN_Builder::optimizer_fun(Simple_NN::Optimizer f) {
-    nn.optimizer_fun = f;
+Simple_NN_Builder &Simple_NN_Builder::regression() {
+    nn.net_type = Simple_NN::Net_Type::REGRESSION;
     return *this;
 }
 
+Simple_NN_Builder &Simple_NN_Builder::classification() {
+    nn.net_type = Simple_NN::Net_Type::CLASSIFICATION;
+    return *this;
+}
 
 void Simple_NN::initialize() {
     assert(input_layer_size != 0 && output_layer_size != 0);
@@ -92,6 +96,15 @@ Eigen::VectorXd Simple_NN::predict(const Eigen::VectorXd& x) {
         activation(activation.rows()-1) = 1;
     }
 
+    if(net_type == CLASSIFICATION && output_layer_size == 1){
+        auto& cof = activation.coeffRef(0);
+        if(cof >= 0.5){
+            cof = 1;
+        } else {
+            cof = 0;
+        }
+    }
+
     return activation;
 }
 
@@ -124,7 +137,7 @@ std::pair<std::vector<Eigen::VectorXd>, std::vector<Eigen::VectorXd>> Simple_NN:
 
 
 
-void Simple_NN::fit(const train_set_t& train_set, const uint32_t& epochs) {
+void Simple_NN::fit(const dataset_t& train_set, const uint32_t& epochs) {
     const auto& x_train = train_set.first;
     const auto& y_train = train_set.second;
 
@@ -158,7 +171,7 @@ double Simple_NN::back_prop(const Eigen::VectorXd &x, const Eigen::VectorXd &d) 
 
     Eigen::VectorXd err(d.rows());
     err << activations.back() - d;
-    mse = err.squaredNorm();
+    mse = err.squaredNorm()/err.rows();
 
     err = err.cwiseProduct(activations.back().unaryExpr(activation_derivative_fptr)); // maybe should be nets
     errs.push_front(err);
@@ -190,6 +203,8 @@ double Simple_NN::back_prop(const Eigen::VectorXd &x, const Eigen::VectorXd &d) 
 
     return mse;
 }
+
+
 
 
 
